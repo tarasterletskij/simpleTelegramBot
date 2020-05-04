@@ -28,7 +28,7 @@ class Weather:
                 "message": mes
             }
         except:
-            mes = f"I can't find such city like: {city} . Try typing on English \n"
+            mes = f"I can't find such city like:  {city}. Try typing on English \n"
             return {
                 "success": False,
                 "message": mes

@@ -1,15 +1,22 @@
-import telebot
 import random
 import messages
 
 from weather import Weather
 from config import TG_TOKEN
 from telebot import types
+from telebot import TeleBot
 
-bot = telebot.TeleBot(TG_TOKEN)
+bot = TeleBot(TG_TOKEN)
 
 giftImg = "static/coin.png"
 greetingImg = "static/pandora-min.png"
+
+commands = {  # command description used in the "help" command
+    'start': 'Get used to the bot',
+    'help': 'Gives you information about the available commands',
+    'whatWeather': 'Show weather from all the world',
+    'randomNumber': 'Play game guess a random number'
+}
 
 
 @bot.message_handler(commands=['start'])
@@ -27,7 +34,27 @@ def welcome(message):
     user_name = message.from_user.first_name
     mes = messages.greeting.format(user_name, bot_name)
 
-    bot.send_message(message.chat.id, mes, parse_mode='html', reply_markup=markup)
+    message_handler(bot, message.chat.id, mes, parse_mode='html', reply_markup=markup)
+
+
+# help page
+@bot.message_handler(commands=['help'])
+def command_help(message):
+    help_text = messages.commands_list
+    for key, value in commands.items():
+        help_text += "/" + key + ": "
+        help_text += value + "\n"
+    message_handler(bot, message.chat.id, help_text)
+
+
+@bot.message_handler(commands=['whatWeather'])
+def command_help(message):
+    input_city(message, messages.which_city)
+
+
+@bot.message_handler(commands=['randomNumber'])
+def command_help(message):
+    play_random_game(message)
 
 
 @bot.message_handler(content_types=['text'])
@@ -38,7 +65,7 @@ def send(message):
         elif message.text == messages.weather_btn:
             input_city(message, messages.which_city)
         else:
-            bot.send_message(message.chat.id, messages.no_command)
+            message_handler(bot, message.chat.id, messages.no_command)
 
 
 @bot.callback_query_handler(func=lambda call: True)
@@ -51,7 +78,7 @@ def callback_inline(call):
                 item2 = types.InlineKeyboardButton(messages.no, callback_data=messages.no_play)
 
                 markup.add(item1, item2)
-                bot.send_message(call.message.chat.id, messages.play_with_me, reply_markup=markup)
+                message_handler(bot, call.message.chat.id, messages.play_with_me, reply_markup=markup)
             elif call.data == messages.yes_mess:
                 input_city(call.message, messages.which_city)
             elif call.data == messages.yes_play:
@@ -59,7 +86,7 @@ def callback_inline(call):
             elif call.data == messages.yes_again:
                 start_game(call.message)
             elif call.data == messages.no_play:
-                bot.send_message(call.message.chat.id, messages.as_wish)
+                message_handler(bot, call.message.chat.id, messages.as_wish)
 
             # remove inline buttons
             bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
@@ -83,41 +110,53 @@ def get_weather_message(message):
         item2 = types.InlineKeyboardButton(messages.no, callback_data=messages.no_mess)
         markup.add(item1, item2)
 
-        bot.send_message(message.chat.id, weather_message['message'], reply_markup=markup, parse_mode='html')
+        message_handler(bot, message.chat.id, weather_message['message'], reply_markup=markup, parse_mode='html')
     else:
         input_city(message, weather_message['message'])
 
 
 def input_city(message, text_mes):
-    sent = bot.send_message(message.chat.id, text_mes)
+    sent = message_handler(bot, message.chat.id, text_mes)
     bot.register_next_step_handler(sent, get_weather_message)
 
 
 def play_random_game(message):
-    bot.send_message(message.chat.id, messages.game_rule)
+    message_handler(bot, message.chat.id, messages.game_rule)
     start_game(message)
 
 
 def start_game(message):
-    sent = bot.send_message(message.chat.id, messages.what_number)
+    sent = message_handler(bot, message.chat.id, messages.what_number)
     bot.register_next_step_handler(sent, generate_number)
 
 
 def generate_number(message):
-    rand_number = random.randint(1, 5)
-    if int(message.text) == rand_number:
-        bot.send_message(message.chat.id, messages.correct)
-        sti = open(giftImg, 'rb')
-        bot.send_sticker(message.chat.id, sti)
+    try:
+        rand_number = random.randint(1, 5)
+        type_number = int(message.text)
+        if type_number == rand_number:
+            message_handler(bot, message.chat.id, messages.correct)
+            sti = open(giftImg, 'rb')
+            bot.send_sticker(message.chat.id, sti)
+        else:
+            message_handler(bot, message.chat.id, messages.not_correct.format(str(rand_number)), parse_mode='html')
+
+        markup = types.InlineKeyboardMarkup(row_width=3)
+        item1 = types.InlineKeyboardButton(messages.yes, callback_data=messages.yes_again)
+        item2 = types.InlineKeyboardButton(messages.no, callback_data=messages.no_play)
+        markup.add(item1, item2)
+    except ValueError:
+        sent = message_handler(bot, message.chat.id, messages.not_number)
+        bot.register_next_step_handler(sent, generate_number)
     else:
-        bot.send_message(message.chat.id, messages.not_correct.format(str(rand_number)), parse_mode='html')
+        message_handler(bot, message.chat.id, messages.play_again, reply_markup=markup)
 
-    markup = types.InlineKeyboardMarkup(row_width=3)
-    item1 = types.InlineKeyboardButton(messages.yes, callback_data=messages.yes_again)
-    item2 = types.InlineKeyboardButton(messages.no, callback_data=messages.no_play)
-    markup.add(item1, item2)
 
-    bot.send_message(message.chat.id, messages.play_again, reply_markup=markup)
+def message_handler(my_bot: TeleBot, chat_id: int, text: str, reply_markup=None, parse_mode=None):
+    try:
+        return my_bot.send_message(chat_id, text, parse_mode=parse_mode, reply_markup=reply_markup, )
+    except:
+        my_bot.send_message(chat_id, messages.something_wrong)
 
 
 # RUN
