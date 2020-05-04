@@ -1,6 +1,7 @@
 import random
 import messages
 
+from filehandler import FileHandler
 from weather import Weather
 from config import TG_TOKEN
 from telebot import types
@@ -21,6 +22,7 @@ commands = {  # command description used in the "help" command
 
 @bot.message_handler(commands=['start'])
 def welcome(message):
+    file_handler = FileHandler()
     greeting_sticker = open(greetingImg, 'rb')
     bot.send_sticker(message.chat.id, greeting_sticker)
 
@@ -30,11 +32,13 @@ def welcome(message):
     item_weather = types.KeyboardButton(messages.weather_btn)
     markup.add(item1, item_weather)
 
+    chat_id = message.chat.id
     bot_name = bot.get_me().first_name
     user_name = message.from_user.first_name
     mes = messages.greeting.format(user_name, bot_name)
+    file_handler.save_user(message.from_user, chat_id)
 
-    message_handler(bot, message.chat.id, mes, parse_mode='html', reply_markup=markup)
+    message_handler(bot, chat_id, mes, parse_mode='html', reply_markup=markup)
 
 
 # help page
