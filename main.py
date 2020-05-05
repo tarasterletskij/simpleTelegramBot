@@ -1,11 +1,11 @@
 import random
-import messages
 
+from telebot import TeleBot, types
+
+import messages
+from config import TG_TOKEN
 from filehandler import FileHandler
 from weather import Weather
-from config import TG_TOKEN
-from telebot import types
-from telebot import TeleBot
 
 bot = TeleBot(TG_TOKEN)
 

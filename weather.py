@@ -1,5 +1,6 @@
-from config import W_TOKEN
 import pyowm
+
+from config import W_TOKEN
 
 
 class Weather:
@@ -28,8 +29,7 @@ class Weather:
                 "message": mes
             }
         except:
-            mes = f"I can't find such city like:  {city}. Try typing on English \n"
             return {
                 "success": False,
-                "message": mes
+                "message": f"I can't find such city like:  {city}. Try typing on English \n"
             }
