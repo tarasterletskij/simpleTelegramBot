@@ -1,6 +1,6 @@
-import os
 import random
 
+import schedule as schedule
 from telebot import TeleBot, types
 
 import messages
@@ -20,6 +20,13 @@ commands = {  # command description used in the "help" command
     'whatWeather': 'Show weather from all the world',
     'randomNumber': 'Play game guess a random number'
 }
+
+
+def send_test():
+    message_handler(bot, 1051840858, 'test message from schedule', parse_mode='html')
+
+
+schedule.every().day.at('23:35').do(send_test)
 
 
 @bot.message_handler(commands=['start'])
@@ -108,7 +115,7 @@ def callback_inline(call):
 def get_weather_message(message):
     city = message.text
     weather = Weather()
-    weather_message = weather.get_weather_message(city)
+    weather_message = weather.get_weather_message(city, message.from_user.id)
     if weather_message['success']:
         markup = types.InlineKeyboardMarkup(row_width=3)
         item1 = types.InlineKeyboardButton(messages.yes, callback_data=messages.yes_mess)

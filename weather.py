@@ -1,11 +1,13 @@
 import pyowm
 
+from filehandler import FileHandler
 from settings import W_TOKEN
 
 
 class Weather:
     def __init__(self):
         self.owm = pyowm.OWM(W_TOKEN, language="EN")
+        self.file_handler = FileHandler()
 
     def get_city_weather(self, city: str):
         observation = self.owm.weather_at_place(city)
@@ -16,9 +18,10 @@ class Weather:
 
         return temp["temp"], wind["speed"], w.get_detailed_status()
 
-    def get_weather_message(self, city: str):
+    def get_weather_message(self, city: str, user_id: int):
         try:
             temperature, wind_speed, status = self.get_city_weather(city)
+            self.file_handler.save_location(user_id, city)
 
             mes = f"In city '{city.capitalize()}' now is {status}. \n" \
                   f"Air temperature: {temperature} °C ,\n" \
