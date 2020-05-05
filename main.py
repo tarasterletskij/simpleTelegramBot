@@ -1,13 +1,15 @@
+import os
 import random
 
 from telebot import TeleBot, types
 
 import messages
-from config import TG_TOKEN
 from filehandler import FileHandler
+from settings import BOT_TOKEN
 from weather import Weather
 
-bot = TeleBot(TG_TOKEN)
+# bot = TeleBot(os.environ.get('BOT_TOKEN'))
+bot = TeleBot(BOT_TOKEN)
 
 giftImg = "static/coin.png"
 greetingImg = "static/pandora-min.png"
@@ -25,7 +27,6 @@ def welcome(message):
     file_handler = FileHandler()
     greeting_sticker = open(greetingImg, 'rb')
     bot.send_sticker(message.chat.id, greeting_sticker)
-
     # keyboard
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     item1 = types.KeyboardButton(messages.random_btn)

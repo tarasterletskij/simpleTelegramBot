@@ -1,6 +1,6 @@
 import pyowm
 
-from config import W_TOKEN
+from settings import W_TOKEN
 
 
 class Weather:
