@@ -49,3 +49,11 @@ class FileHandler:
     def get_json_data(cls, json_file=__usersFile):
         with open(json_file, encoding='utf-8') as json_file:
             return json.load(json_file)
+
+    def get_users(self):
+        if self.file_exist(self.__usersFile):
+            with open(self.__usersFile, encoding='utf-8') as json_file:
+                data = json.load(json_file)
+
+                return list(data.keys())
+        return []
