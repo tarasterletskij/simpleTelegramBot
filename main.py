@@ -8,7 +8,6 @@ from filehandler import FileHandler
 from settings import BOT_TOKEN
 from weather import Weather
 
-# bot = TeleBot(os.environ.get('BOT_TOKEN'))
 bot = TeleBot(BOT_TOKEN)
 
 giftImg = "static/coin.png"
@@ -23,10 +22,13 @@ commands = {  # command description used in the "help" command
 
 
 def send_test():
-    message_handler(bot, 1051840858, 'test message from schedule', parse_mode='html')
+    file_handler = FileHandler()
+    users = file_handler.get_users()
+    for user in users:
+        message_handler(bot, int(user), 'test message from schedule', parse_mode='html')
 
 
-schedule.every().day.at('23:35').do(send_test)
+schedule.every().day.at('20:00').do(send_test)
 
 
 @bot.message_handler(commands=['start'])
