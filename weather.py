@@ -1,4 +1,5 @@
 import pyowm
+from pyowm.exceptions import OWMError
 
 from filehandler import FileHandler
 from settings import W_TOKEN
@@ -18,10 +19,11 @@ class Weather:
 
         return temp["temp"], wind["speed"], w.get_detailed_status()
 
-    def get_weather_message(self, city: str, user_id: int):
+    def get_weather_message(self, city: str, user_id=None):
         try:
             temperature, wind_speed, status = self.get_city_weather(city)
-            self.file_handler.save_location(user_id, city)
+            if user_id is not None:
+                self.file_handler.save_location(user_id, city)
 
             mes = f"In city '{city.capitalize()}' now is {status}. \n" \
                   f"Air temperature: {temperature} °C ,\n" \
@@ -31,7 +33,7 @@ class Weather:
                 "success": True,
                 "message": mes
             }
-        except:
+        except OWMError:
             return {
                 "success": False,
                 "message": f"I can't find such city like:  {city}. Try typing on English \n"

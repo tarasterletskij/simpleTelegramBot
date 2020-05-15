@@ -21,3 +21,4 @@ greeting = "Hello, <b>{0}</b>!\nI am bot and my name is <b>{1}</b>.\nType comman
 commands_list = "The following commands are available: \n"
 something_wrong = "Oops! something when wrong. Try again"
 not_number = "Your type not integer! Please try again"
+cancel_step = "Cancel step"

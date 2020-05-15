@@ -55,5 +55,5 @@ class FileHandler:
             with open(self.__usersFile, encoding='utf-8') as json_file:
                 data = json.load(json_file)
 
-                return list(data.keys())
+                return data
         return []

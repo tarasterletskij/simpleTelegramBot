@@ -1,6 +1,6 @@
 import random
-
-import schedule as schedule
+import time
+from multiprocessing import Process
 from telebot import TeleBot, types
 
 import messages
@@ -21,14 +21,17 @@ commands = {  # command description used in the "help" command
 }
 
 
-def send_test():
+def send_user_weather():
     file_handler = FileHandler()
     users = file_handler.get_users()
-    for user in users:
-        message_handler(bot, int(user), 'test message from schedule', parse_mode='html')
+    weather = Weather()
 
-
-schedule.every().day.at('20:00').do(send_test)
+    for user in list(users.values()):
+        try:
+            weather_message = weather.get_weather_message(user['location'])
+            message_handler(bot, int(user['chatId']), weather_message['message'], parse_mode='html')
+        except Exception as exception:
+            print(repr(exception))
 
 
 @bot.message_handler(commands=['start'])
@@ -87,12 +90,14 @@ def callback_inline(call):
     try:
         if call.message:
             if call.data == messages.no_mess:
-                markup = types.InlineKeyboardMarkup(row_width=3)
-                item1 = types.InlineKeyboardButton(messages.yes, callback_data=messages.yes_play)
-                item2 = types.InlineKeyboardButton(messages.no, callback_data=messages.no_play)
+                random_play = random.randint(0, 1)
+                if bool(random_play):
+                    markup = types.InlineKeyboardMarkup(row_width=3)
+                    item1 = types.InlineKeyboardButton(messages.yes, callback_data=messages.yes_play)
+                    item2 = types.InlineKeyboardButton(messages.no, callback_data=messages.no_play)
+                    markup.add(item1, item2)
 
-                markup.add(item1, item2)
-                message_handler(bot, call.message.chat.id, messages.play_with_me, reply_markup=markup)
+                    message_handler(bot, call.message.chat.id, messages.play_with_me, reply_markup=markup)
             elif call.data == messages.yes_mess:
                 input_city(call.message, messages.which_city)
             elif call.data == messages.yes_play:
@@ -101,6 +106,9 @@ def callback_inline(call):
                 start_game(call.message)
             elif call.data == messages.no_play:
                 message_handler(bot, call.message.chat.id, messages.as_wish)
+            elif call.data == messages.cancel_step:
+                bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text='Canceled')
+                bot.clear_step_handler_by_chat_id(chat_id=call.message.chat.id)
 
             # remove inline buttons
             bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
@@ -130,7 +138,11 @@ def get_weather_message(message):
 
 
 def input_city(message, text_mes):
-    sent = message_handler(bot, message.chat.id, text_mes)
+    board = types.InlineKeyboardMarkup()
+    cancel = types.InlineKeyboardButton(text=messages.cancel_step, callback_data=messages.cancel_step)
+    board.add(cancel)
+
+    sent = message_handler(bot, message.chat.id, text_mes, reply_markup=board)
     bot.register_next_step_handler(sent, get_weather_message)
 
 
@@ -173,5 +185,21 @@ def message_handler(my_bot: TeleBot, chat_id: int, text: str, reply_markup=None,
         my_bot.send_message(chat_id, messages.something_wrong)
 
 
-# RUN
-bot.polling(none_stop=True)
+def check_send_messages():
+    while True:
+        hour, min = map(int, time.strftime("%H %M").split())
+        if (hour == 13 | hour == 18 | hour == 21 | hour == 24) & min == 0:
+            send_user_weather()
+        time.sleep(60)
+
+
+if __name__ == '__main__':
+    while True:
+        try:
+            p1 = Process(target=check_send_messages, args=())
+            p1.start()
+
+            bot.polling(none_stop=True)
+        except Exception as e:
+            print(e)
+            time.sleep(15)
