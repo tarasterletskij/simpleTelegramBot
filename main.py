@@ -29,7 +29,8 @@ def send_user_weather():
     for user in list(users.values()):
         try:
             weather_message = weather.get_weather_message(user['location'])
-            message_handler(bot, int(user['chatId']), weather_message['message'], parse_mode='html')
+            if weather_message['success']:
+                message_handler(bot, int(user['chatId']), weather_message['message'], parse_mode='html')
         except Exception as exception:
             print(repr(exception))
 
@@ -188,7 +189,9 @@ def message_handler(my_bot: TeleBot, chat_id: int, text: str, reply_markup=None,
 def check_send_messages():
     while True:
         hour, min = map(int, time.strftime("%H %M").split())
-        if (hour == 11 | hour == 16 | hour == 19 | hour == 22) & min == 0:
+        hour=11
+        min =0
+        if (hour == 11 or hour == 15 or hour == 19 or hour == 23) and min == 0:
             send_user_weather()
         time.sleep(60)
 
