@@ -191,8 +191,6 @@ def message_handler(my_bot: TeleBot, chat_id: int, text: str, reply_markup=None,
 def check_send_messages():
     while True:
         hour, min = map(int, time.strftime("%H %M").split())
-        hour = 11
-        min = 0
         if (hour == 11 or hour == 15 or hour == 19 or hour == 23) and min == 0:
             send_user_weather()
         time.sleep(60)
