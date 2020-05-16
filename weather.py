@@ -11,6 +11,10 @@ class Weather:
         self.file_handler = FileHandler()
 
     def get_city_weather(self, city: str):
+        """
+        :param  str city:
+        :return: dict
+        """
         observation = self.owm.weather_at_place(city)
         w = observation.get_weather()
         # Weather details
@@ -20,6 +24,11 @@ class Weather:
         return temp["temp"], wind["speed"], w.get_detailed_status()
 
     def get_weather_message(self, city: str, user_id=None):
+        """
+        :param str city:
+        :param int user_id:
+        :return: dict
+        """
         try:
             temperature, wind_speed, status = self.get_city_weather(city)
             if user_id is not None:

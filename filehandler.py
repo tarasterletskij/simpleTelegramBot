@@ -56,4 +56,4 @@ class FileHandler:
                 data = json.load(json_file)
 
                 return data
-        return []
+        return {}
